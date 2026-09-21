@@ -1,6 +1,8 @@
 <script setup>
 import SitePublicHeader from '../components/SitePublicHeader.vue'
 import { useAuthModal } from '../composables/useAuthModal'
+import homeHeroImg from '../assets/home-hero.jpg'
+import homeWhyImg from '../assets/home-why.jpg'
 
 const { openRegister } = useAuthModal()
 
@@ -55,7 +57,7 @@ const benefits = [
           <p class="sp-students">450 000+ студентов могут воспользоваться</p>
         </div>
         <div class="sp-hero-visual">
-          <span>Студенты за ноутбуками</span>
+          <img :src="homeHeroImg" alt="Студенты работают за ноутбуками в коворкинге" />
         </div>
       </section>
 
@@ -109,7 +111,9 @@ const benefits = [
     </section>
 
     <section class="sp-section sp-container sp-why">
-      <div class="sp-why-image">Студенты сотрудничают</div>
+      <div class="sp-why-image">
+        <img :src="homeWhyImg" alt="Студенты вместе работают над проектом" />
+      </div>
       <div>
         <p class="sp-section-tag">Почему мы</p>
         <h2>Решение всех проблем в одном месте</h2>
