@@ -1,0 +1,6 @@
+# Docker Desktop: File → Open Compose → этот файл,
+# либо откройте папку backend/docker-compose.yml.
+name: studentpass
+
+include:
+  - path: backend/docker-compose.yml
