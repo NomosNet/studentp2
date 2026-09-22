@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vds-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update the site on the VDS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          port: ${{ secrets.VDS_SSH_PORT || 22 }}
+          command_timeout: 30m
+          script: |
+            set -eu
+            cd /opt/studentpass
+            git fetch origin
+            git reset --hard origin/main
+            bash deploy/vds-update.sh
