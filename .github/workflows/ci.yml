@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: ""
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build gateway and users
+        run: |
+          dotnet build src/ApiGateway/ApiGateway.csproj -c Release
+          dotnet build src/ServiceUsers/ServiceUsers.csproj -c Release
+      - name: Build ServiceNotify
+        env:
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+        run: |
+          if [ -z "$GITHUB_PAT" ]; then
+            echo "GITHUB_PAT is not configured, skipping ServiceNotify."
+            exit 0
+          fi
+          dotnet nuget update source github-mailtrap \
+            --username "$GITHUB_USERNAME" \
+            --password "$GITHUB_PAT" \
+            --store-password-in-clear-text \
+            --configfile nuget.config
+          dotnet build src/ServiceNotify/ServiceNotify.csproj -c Release

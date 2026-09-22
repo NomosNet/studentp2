@@ -64,6 +64,44 @@ docker compose -f docker-compose.yml -f docker-compose.vds.yml up --build -d
 
 Сайт: `http://IP_СЕРВЕРА`. Локальный `docker compose up` этот файл не использует: gateway по-прежнему на порту 80, Swagger на `8001`.
 
+Сборка `ServiceNotify` качает пакет Mailtrap из GitHub Packages. В `backend/.env` на сервере заполните `GITHUB_USERNAME` и `GITHUB_PAT` (scope `read:packages`), иначе `docker compose up --build` остановится на этом образе. SMTP при отключённом коде на почту можно не задавать.
+
+### CI/CD
+
+Дальше сайт обновляется сам. Проверка сборки (фронт, ApiGateway, ServiceUsers) идёт на каждый push и pull request в `develop` и `main`. Выкладка на VDS — только push в `main` и ручной запуск workflow **Deploy**. Ветка `develop` на сервер не выкладывается: чтобы опубликовать работу, влейте её в `main`.
+
+Один раз на сервере, пользователь с доступом к Docker (не обязательно root):
+
+```bash
+sudo mkdir -p /opt/studentpass
+sudo chown "$USER":"$USER" /opt/studentpass
+git clone https://github.com/NomosNet/studentp2.git /opt/studentpass
+cd /opt/studentpass/backend
+cp .env.example .env
+# пароль Postgres, JWT_SECRET_KEY, GITHUB_USERNAME, GITHUB_PAT
+```
+
+Ключ для GitHub Actions, на своём компьютере:
+
+```bash
+ssh-keygen -t ed25519 -f studentpass-deploy -C "github-actions"
+```
+
+Публичную часть (`studentpass-deploy.pub`) добавьте в `~/.ssh/authorized_keys` этого пользователя на VDS. Приватный файл `studentpass-deploy` целиком — в секрет репозитория, пароль от сервера в GitHub не кладётся.
+
+Секреты репозитория (Settings → Secrets and variables → Actions):
+
+| Секрет | Значение |
+|---|---|
+| `VDS_HOST` | IP или домен сервера |
+| `VDS_USER` | SSH-пользователь, который владеет `/opt/studentpass` и входит в группу `docker` |
+| `VDS_SSH_KEY` | Приватный ключ целиком, вместе со строками `BEGIN` и `END` |
+| `VDS_SSH_PORT` | Необязательно. Если пусто, используется `22` |
+| `GITHUB_USERNAME` | Необязательно, только чтобы CI собирал `ServiceNotify` |
+| `GITHUB_PAT` | Необязательно, PAT со scope `read:packages` для CI |
+
+После того как секреты заданы и каталог `/opt/studentpass` уже склонирован, пуш в `main` запускает на сервере `deploy/vds-update.sh`: `git reset` на `origin/main` и `docker compose up --build -d`. Файл `backend/.env` в git не входит и при обновлении не затирается.
+
 ## SMTP для регистрации и авторизации
 
 Проверка кода с почты временно закомментирована: регистрация проходит без письма. Блок ниже нужен, когда проверку снова включат.
