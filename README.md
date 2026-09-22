@@ -62,7 +62,13 @@ cd backend
 docker compose -f docker-compose.yml -f docker-compose.vds.yml up --build -d
 ```
 
-Сайт: `http://IP_СЕРВЕРА`. Локальный `docker compose up` этот файл не использует: gateway по-прежнему на порту 80, Swagger на `8001`.
+Сайт на VDS: `https://student-pass.ru`. Caddy сам получает сертификат Let's Encrypt. Локальный `docker compose up` этот файл не использует: gateway по-прежнему на порту 80, Swagger на `8001`.
+
+Перед первым запуском с доменом направьте `student-pass.ru` на IP сервера (A-запись) и откройте порт 443:
+
+```bash
+sudo ufw allow 443/tcp
+```
 
 Сборка `ServiceNotify` качает пакет Mailtrap из GitHub Packages. В `backend/.env` на сервере заполните `GITHUB_USERNAME` и `GITHUB_PAT` (scope `read:packages`), иначе `docker compose up --build` остановится на этом образе. SMTP при отключённом коде на почту можно не задавать.
 

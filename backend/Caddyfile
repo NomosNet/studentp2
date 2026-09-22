@@ -1,0 +1,3 @@
+student-pass.ru, www.student-pass.ru {
+	reverse_proxy frontend:80
+}
