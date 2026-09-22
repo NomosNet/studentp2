@@ -62,14 +62,15 @@ public sealed class AuthService
 
     public async Task<string> RegisterAsync(UserRegister data, CancellationToken cancellationToken)
     {
-        var verification = await _db.EmailVerifications.FirstOrDefaultAsync(
-            x => x.UserEmail == data.Email && x.Code == data.Code.ToString() && x.ExpiresAt > DateTime.UtcNow,
-            cancellationToken);
-
-        if (verification is null)
-        {
-            return "Код не подходит! Попробуйте еще раз";
-        }
+        // Временно отключена проверка кода с почты. Чтобы вернуть, раскомментируйте блок ниже.
+        // var verification = await _db.EmailVerifications.FirstOrDefaultAsync(
+        //     x => x.UserEmail == data.Email && x.Code == data.Code.ToString() && x.ExpiresAt > DateTime.UtcNow,
+        //     cancellationToken);
+        //
+        // if (verification is null)
+        // {
+        //     return "Код не подходит! Попробуйте еще раз";
+        // }
 
         var existing = await _db.Users.FirstOrDefaultAsync(x => x.Email == data.Email, cancellationToken);
         if (existing is not null)

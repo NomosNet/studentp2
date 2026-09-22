@@ -24,6 +24,12 @@ import { RouterLink } from 'vue-router'
         <a href="#">Разработка</a>
         <a href="#">Продуктивность</a>
       </div>
+      <div>
+        <h4>Документы</h4>
+        <RouterLink :to="{ name: 'privacy' }">Политика обработки ПДн</RouterLink>
+        <RouterLink :to="{ name: 'cookies' }">Политика cookies</RouterLink>
+        <RouterLink :to="{ name: 'terms' }">Пользовательское соглашение</RouterLink>
+      </div>
     </div>
   </footer>
 </template>

@@ -38,7 +38,7 @@ docker compose up --build -d
 
 Это сотрёт данные БД.
 
-Переменные — `.env.example`. Без SMTP коды регистрации пишутся в лог контейнера `studentpass-notify`.
+Переменные — `.env.example`. Если задан `MAILTRAP_API_TOKEN`, `ServiceNotify` отправляет письма через Mailtrap. Без Mailtrap и без SMTP коды регистрации пишутся в лог контейнера `studentpass-notify`.
 
 ## Локально без Docker
 

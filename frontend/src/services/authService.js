@@ -17,15 +17,14 @@ export async function sendRegistrationCode({ email }) {
 
 export async function registerUser(payload) {
   const { email, password, full_name, code } = payload
-  const codeNum = typeof code === 'number' ? code : Number.parseInt(String(code).replace(/\D/g, ''), 10)
+  const body = { email, password, full_name }
+  // Код с почты временно не обязателен. Если его передали, уходит как раньше.
+  if (code !== undefined && code !== null && code !== '') {
+    body.code = typeof code === 'number' ? code : Number.parseInt(String(code).replace(/\D/g, ''), 10)
+  }
   const data = await apiRequest('/api/v1/auth/register', {
     method: 'POST',
-    body: JSON.stringify({
-      email,
-      password,
-      full_name,
-      code: codeNum,
-    }),
+    body: JSON.stringify(body),
   })
   // API может вернуть 200 с текстом об ошибке кода
   if (data?.message && /код не подходит/i.test(data.message)) {

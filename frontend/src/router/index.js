@@ -5,6 +5,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import HomeView from '../views/HomeView.vue'
 import CatalogView from '../views/CatalogView.vue'
 import HowItWorksView from '../views/HowItWorksView.vue'
+import LegalDocumentView from '../views/LegalDocumentView.vue'
 import ProductView from '../views/ProductView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
@@ -41,6 +42,21 @@ const routes = [
         path: 'product/:id',
         name: 'product',
         component: ProductView,
+      },
+      {
+        path: 'privacy',
+        name: 'privacy',
+        component: LegalDocumentView,
+      },
+      {
+        path: 'cookies',
+        name: 'cookies',
+        component: LegalDocumentView,
+      },
+      {
+        path: 'terms',
+        name: 'terms',
+        component: LegalDocumentView,
       },
     ],
   },

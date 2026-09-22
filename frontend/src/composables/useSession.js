@@ -84,16 +84,18 @@ export function useSession() {
       })
       return
     }
-    const raw = String(code ?? '').replace(/\D/g, '')
-    const codeNum = Number.parseInt(raw, 10)
-    if (!Number.isFinite(codeNum) || raw.length !== 6) {
-      throw new Error('Введите 6-значный код из письма')
-    }
+    // Временно отключена проверка кода с почты. Чтобы вернуть, раскомментируйте блок ниже
+    // и снова передавайте code из формы регистрации.
+    // const raw = String(code ?? '').replace(/\D/g, '')
+    // const codeNum = Number.parseInt(raw, 10)
+    // if (!Number.isFinite(codeNum) || raw.length !== 6) {
+    //   throw new Error('Введите 6-значный код из письма')
+    // }
+    void code
     await registerUser({
       email: String(email || '').trim(),
       password,
       full_name: String(name || '').trim(),
-      code: codeNum,
     })
   }
 

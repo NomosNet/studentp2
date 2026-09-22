@@ -1,0 +1,33 @@
+# Прод-слой поверх docker-compose.yml.
+# Сайт и /api/ отдаёт nginx (frontend) на порту 80.
+# Postgres, Redis, RabbitMQ, ServiceUsers и gateway снаружи не публикуются.
+
+services:
+  postgres:
+    ports: !override []
+
+  rabbitmq:
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  service_users:
+    ports: !override []
+
+  api_gateway:
+    ports: !override []
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: studentpass-frontend
+    container_name: studentpass-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api_gateway
+    networks:
+      - app-network

@@ -591,7 +591,7 @@ p {
 
 .sp-footer-grid {
   display: grid;
-  grid-template-columns: 1.6fr 0.8fr 0.8fr;
+  grid-template-columns: 1.4fr 0.7fr 0.7fr 0.9fr;
   gap: 26px;
 }
 
@@ -1087,6 +1087,123 @@ p {
   color: #9ca3af;
   font-size: 18px;
   line-height: 1.55;
+}
+
+.legal-page {
+  min-height: 100vh;
+  background: var(--app-gradient);
+  color: var(--text);
+}
+
+.legal-main {
+  max-width: 760px;
+  padding: 36px 0 56px;
+}
+
+.legal-title {
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.legal-updated {
+  margin: 0 0 18px;
+  color: #a78bfa;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.legal-lead {
+  margin: 0 0 28px;
+  color: #9ca3af;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.legal-section {
+  margin-top: 28px;
+}
+
+.legal-section h2 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+
+.legal-section p {
+  margin: 0 0 10px;
+  color: #c5cbe6;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.cookie-banner {
+  position: fixed;
+  z-index: 80;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(10, 12, 28, 0.96);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.cookie-banner p {
+  margin: 0;
+  color: #c5cbe6;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cookie-banner a {
+  color: #c4b5fd;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cookie-banner__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .cookie-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cookie-banner__actions {
+    flex-direction: column;
+  }
+}
+
+.auth-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #d1d5db;
+}
+
+.auth-consent input {
+  margin-top: 2px;
+  accent-color: #8d33ff;
+}
+
+.auth-consent a {
+  color: #c4b5fd;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .how-timeline {
@@ -1708,6 +1825,10 @@ button.sp-btn {
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
+}
+
+button.sp-btn.sp-btn--ghost {
+  border: 1px solid var(--line);
 }
 
 .auth-header-actions--logged {

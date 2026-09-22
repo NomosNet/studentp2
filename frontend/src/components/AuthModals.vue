@@ -1,21 +1,23 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuthModal } from '../composables/useAuthModal'
 import { useSession } from '../composables/useSession'
 
 const router = useRouter()
 const { openMode, close, openLogin, openRegister } = useAuthModal()
-const { login, register, requestRegistrationCode } = useSession()
+const { login, register } = useSession()
 const authError = ref('')
 
 const regName = ref('')
 const regEmail = ref('')
 const regUni = ref('')
 const regPass = ref('')
-const regCode = ref('')
-const codeSent = ref(false)
-const sendingCode = ref(false)
+const regConsent = ref(false)
+// Временно отключена отправка кода на почту.
+// const regCode = ref('')
+// const codeSent = ref(false)
+// const sendingCode = ref(false)
 
 const loginEmail = ref('')
 const loginPass = ref('')
@@ -27,37 +29,41 @@ const onKeydown = (e) => {
 watch(openMode, (mode) => {
   document.body.style.overflow = mode ? 'hidden' : ''
   if (mode === 'register') {
-    regCode.value = ''
-    codeSent.value = false
+    // regCode.value = ''
+    // codeSent.value = false
+    regConsent.value = false
     authError.value = ''
   }
 })
 
-async function onSendCode() {
-  authError.value = ''
-  if (!String(regEmail.value || '').trim()) {
-    authError.value = 'Укажите email, на который отправить код'
-    return
-  }
-  sendingCode.value = true
-  try {
-    await requestRegistrationCode({ email: regEmail.value })
-    codeSent.value = true
-  } catch (error) {
-    authError.value = error instanceof Error ? error.message : 'Не удалось отправить код'
-  } finally {
-    sendingCode.value = false
-  }
-}
+// async function onSendCode() {
+//   authError.value = ''
+//   if (!String(regEmail.value || '').trim()) {
+//     authError.value = 'Укажите email, на который отправить код'
+//     return
+//   }
+//   sendingCode.value = true
+//   try {
+//     await requestRegistrationCode({ email: regEmail.value })
+//     codeSent.value = true
+//   } catch (error) {
+//     authError.value = error instanceof Error ? error.message : 'Не удалось отправить код'
+//   } finally {
+//     sendingCode.value = false
+//   }
+// }
 
 async function submitRegister() {
   authError.value = ''
+  if (!regConsent.value) {
+    authError.value = 'Нужно согласие на обработку персональных данных'
+    return
+  }
   try {
     await register({
       email: regEmail.value,
       name: regName.value,
       password: regPass.value,
-      code: regCode.value,
     })
     close()
     openLogin()
@@ -128,6 +134,7 @@ onUnmounted(() => {
                 <input id="reg-email" v-model="regEmail" type="email" class="auth-input" placeholder="student@university.edu" autocomplete="email" />
               </div>
               <p class="auth-hint">Используйте почту, выданную вашим учебным заведением</p>
+              <!--
               <button
                 type="button"
                 class="auth-submit auth-submit--secondary"
@@ -137,8 +144,10 @@ onUnmounted(() => {
                 {{ sendingCode ? 'Отправка…' : 'Получить код на почту' }}
               </button>
               <p v-if="codeSent" class="auth-hint auth-hint--ok">Код отправлен. Проверьте почту и введите его ниже.</p>
+              -->
             </div>
 
+            <!--
             <div class="auth-field">
               <label class="auth-label" for="reg-code">Код из письма</label>
               <div class="auth-input-row">
@@ -157,6 +166,7 @@ onUnmounted(() => {
                 />
               </div>
             </div>
+            -->
 
             <div class="auth-field">
               <label class="auth-label" for="reg-uni">Университет</label>
@@ -176,6 +186,14 @@ onUnmounted(() => {
                 </span>
                 <input id="reg-pass" v-model="regPass" type="password" class="auth-input" placeholder="••••••••" autocomplete="new-password" />
               </div>
+            </div>
+
+            <div class="auth-consent">
+              <input id="reg-consent" v-model="regConsent" type="checkbox" />
+              <label for="reg-consent">
+                Я соглашаюсь на
+                <RouterLink :to="{ name: 'privacy' }" @click.stop="close">обработку персональных данных</RouterLink>
+              </label>
             </div>
 
             <button type="submit" class="auth-submit">Зарегистрироваться</button>
