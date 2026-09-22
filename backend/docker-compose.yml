@@ -1,0 +1,149 @@
+name: studentpass
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: studentpass-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: control_sys_2
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d control_sys_2"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: studentpass-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: studentpass-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  service_users:
+    build:
+      context: .
+      dockerfile: src/ServiceUsers/Dockerfile
+    image: studentpass-users
+    container_name: studentpass-users
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      ASPNETCORE_URLS: http://+:8000
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=users_db;Username=admin;Password=${POSTGRES_PASSWORD:-admin}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-change-me-please-use-32chars}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACC_TOKEN_EXP_MIN: ${ACC_TOKEN_EXP_MIN:-60}
+      AdminBootstrapEmail: ${ADMIN_BOOTSTRAP_EMAIL:-alex.arkhangelskiy@yandex.ru}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Port: "5672"
+      RabbitMQ__User: guest
+      RabbitMQ__Password: guest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  service_notify:
+    build:
+      context: .
+      dockerfile: src/ServiceNotify/Dockerfile
+      args:
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+        GITHUB_PAT: ${GITHUB_PAT:-}
+    image: studentpass-notify
+    container_name: studentpass-notify
+    restart: unless-stopped
+    environment:
+      SMTP_SERVER: ${SMTP_SERVER:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_LOGIN: ${SMTP_LOGIN:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAILTRAP_API_TOKEN: ${MAILTRAP_API_TOKEN:-}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Port: "5672"
+      RabbitMQ__User: guest
+      RabbitMQ__Password: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    image: studentpass-gateway
+    container_name: studentpass-gateway
+    restart: unless-stopped
+    ports:
+      - "80:8000"
+    environment:
+      ASPNETCORE_URLS: http://+:8000
+      ASPNETCORE_ENVIRONMENT: Development
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-change-me-please-use-32chars}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACC_TOKEN_EXP_MIN: ${ACC_TOKEN_EXP_MIN:-60}
+      REDIS_URL: redis:6379
+      ReverseProxy__Clusters__users-cluster__Destinations__users__Address: http://service_users:8000/
+    depends_on:
+      service_users:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  app-network:
+    driver: bridge
