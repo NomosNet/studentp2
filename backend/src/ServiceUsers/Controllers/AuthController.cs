@@ -13,12 +13,14 @@ public sealed class AuthController : ControllerBase
     private readonly AuthService _auth;
     private readonly JwtTokenService _jwt;
     private readonly CurrentUserService _currentUser;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(AuthService auth, JwtTokenService jwt, CurrentUserService currentUser)
+    public AuthController(AuthService auth, JwtTokenService jwt, CurrentUserService currentUser, IConfiguration configuration)
     {
         _auth = auth;
         _jwt = jwt;
         _currentUser = currentUser;
+        _configuration = configuration;
     }
 
     [AllowAnonymous]
@@ -96,7 +98,7 @@ public sealed class AuthController : ControllerBase
         Response.Cookies.Append("access_token", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = false,
+            Secure = _configuration.GetValue("COOKIE_SECURE", false),
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromMinutes(_jwt.ExpiresMinutes),
             Path = "/"
