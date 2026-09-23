@@ -21,10 +21,10 @@ async function handleLogout() {
     <header class="admin-top">
       <RouterLink :to="{ name: 'home' }" class="admin-brand">StudentPass</RouterLink>
       <nav class="admin-nav">
-        <RouterLink :to="{ name: 'admin-dashboard' }" active-class="is-active">Панель управления</RouterLink>
-        <RouterLink :to="{ name: 'admin-applications' }" active-class="is-active">Заявки компаний</RouterLink>
-        <RouterLink :to="{ name: 'admin-managers' }" active-class="is-active">Менеджеры</RouterLink>
-        <RouterLink :to="{ name: 'admin-statistics' }" active-class="is-active">Статистика</RouterLink>
+        <RouterLink :to="{ name: 'admin-dashboard' }" exact-active-class="is-active">Панель управления</RouterLink>
+        <RouterLink :to="{ name: 'admin-applications' }" exact-active-class="is-active">Заявки компаний</RouterLink>
+        <RouterLink :to="{ name: 'admin-managers' }" exact-active-class="is-active">Менеджеры</RouterLink>
+        <RouterLink :to="{ name: 'admin-statistics' }" exact-active-class="is-active">Статистика</RouterLink>
       </nav>
       <div class="admin-profile">
         <span class="admin-profile-dot" aria-hidden="true" />

@@ -54,6 +54,42 @@ public sealed class PartnerService
         return result;
     }
 
+    public async Task<List<ManagerCompanyResponse>> GetManagedCompaniesAsync(string managerEmail, CancellationToken cancellationToken)
+    {
+        var partners = await _db.ManagerAssignments
+            .Where(x => x.ManagerEmail == managerEmail && x.Partner.IsApproved)
+            .Select(x => x.Partner)
+            .OrderBy(x => x.CompanyName)
+            .ToListAsync(cancellationToken);
+        var emails = partners.Select(x => x.UserEmail).ToList();
+        var stats = emails.Count == 0
+            ? new Dictionary<string, (int Ads, int Clicks)>()
+            : (await _db.Ads
+                .Where(ad => emails.Contains(ad.PartnerEmail))
+                .GroupBy(ad => ad.PartnerEmail)
+                .Select(g => new
+                {
+                    Email = g.Key,
+                    Ads = g.Sum(ad => ad.IsActive ? 1 : 0),
+                    Clicks = g.Sum(ad => ad.ClicksCount)
+                })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(x => x.Email, x => (x.Ads, x.Clicks));
+
+        return partners.Select(partner =>
+        {
+            stats.TryGetValue(partner.UserEmail, out var stat);
+            return new ManagerCompanyResponse
+            {
+                Id = partner.Id,
+                CompanyName = partner.CompanyName,
+                Email = partner.UserEmail,
+                AdsCount = stat.Ads,
+                Clicks = stat.Clicks
+            };
+        }).ToList();
+    }
+
     public async Task<AdListResponse> GetPartnerAdsPublicAsync(int partnerId, int page, int limit, CancellationToken cancellationToken)
     {
         var partner = await _db.Partners.FirstOrDefaultAsync(x => x.Id == partnerId && x.IsApproved, cancellationToken);

@@ -32,4 +32,5 @@ public sealed class PartnerRequestResponse
     public PartnerRequestStatus Status { get; set; }
     public string? AdminComment { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

@@ -1,9 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { approvePartnerRequest, getPartnerRequests } from '../../services/adminService'
+import { approvePartnerRequest, getPartnerRequests, rejectPartnerRequest } from '../../services/adminService'
 
 const filter = ref('all')
 const applications = ref([])
+const error = ref('')
+const rejectingEmail = ref('')
+const rejectComment = ref('')
 
 const filterOptions = [
   { key: 'all', label: 'Все' },
@@ -14,18 +17,18 @@ const filterOptions = [
 
 const visible = computed(() => {
   if (filter.value === 'all') return applications.value
-  return applications.value.filter((a) => a.status === filter.value)
+  return applications.value.filter((item) => item.status === filter.value)
 })
 
-const statusLabel = (s) => {
-  if (s === 'pending') return 'На рассмотрении'
-  if (s === 'approved') return 'Одобрена'
+const statusLabel = (status) => {
+  if (status === 'pending') return 'На рассмотрении'
+  if (status === 'approved') return 'Одобрена'
   return 'Отклонена'
 }
 
-const statusClass = (s) => {
-  if (s === 'pending') return 'admin-badge--warn'
-  if (s === 'approved') return 'admin-badge--ok'
+const statusClass = (status) => {
+  if (status === 'pending') return 'admin-badge--warn'
+  if (status === 'approved') return 'admin-badge--ok'
   return 'admin-badge--bad'
 }
 
@@ -36,6 +39,7 @@ function formatDate(value) {
 }
 
 async function loadApplications() {
+  error.value = ''
   const response = await getPartnerRequests({ limit: 100 })
   applications.value = (response?.items || []).map((item) => ({
     id: String(item.id),
@@ -43,23 +47,51 @@ async function loadApplications() {
     company: item.company_name,
     status: item.status,
     contact: item.contact_person,
-    position: '—',
     email: item.user_email || '—',
     phone: item.phone,
     offer: item.description || 'Описание не указано',
     submitted: formatDate(item.created_at),
-    resolved: item.status === 'pending' ? '' : formatDate(item.created_at),
+    resolved: item.status === 'pending' ? '' : formatDate(item.updated_at),
     reason: item.admin_comment || '',
   }))
 }
 
 async function approveRequest(application) {
-  await approvePartnerRequest(application.userEmail)
-  await loadApplications()
+  error.value = ''
+  try {
+    await approvePartnerRequest(application.userEmail)
+    await loadApplications()
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Не удалось одобрить заявку'
+  }
+}
+
+function startReject(application) {
+  rejectingEmail.value = application.userEmail
+  rejectComment.value = ''
+  error.value = ''
+}
+
+async function submitReject(application) {
+  const comment = rejectComment.value.trim()
+  if (!comment) {
+    error.value = 'Укажите причину отклонения'
+    return
+  }
+  error.value = ''
+  try {
+    await rejectPartnerRequest(application.userEmail, comment)
+    rejectingEmail.value = ''
+    await loadApplications()
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Не удалось отклонить заявку'
+  }
 }
 
 onMounted(() => {
-  void loadApplications()
+  loadApplications().catch((err) => {
+    error.value = err instanceof Error ? err.message : 'Не удалось загрузить заявки'
+  })
 })
 </script>
 
@@ -74,6 +106,8 @@ onMounted(() => {
         </div>
       </div>
     </header>
+
+    <p v-if="error" class="admin-empty">{{ error }}</p>
 
     <div class="admin-filter-bar">
       <span class="admin-filter-label">Фильтр:</span>
@@ -91,6 +125,8 @@ onMounted(() => {
       </div>
     </div>
 
+    <p v-if="!visible.length" class="admin-empty">Заявок нет</p>
+
     <div class="admin-app-list">
       <article v-for="app in visible" :key="app.id" class="admin-app-card">
         <div class="admin-app-card__head">
@@ -99,11 +135,23 @@ onMounted(() => {
             <span class="admin-badge" :class="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
           </div>
           <div v-if="app.status === 'pending'" class="admin-app-actions">
-            <button type="button" class="admin-btn admin-btn--ok" @click="approveRequest(app)">
-              ✓ Одобрить
-            </button>
+            <button type="button" class="admin-btn admin-btn--ok" @click="approveRequest(app)">Одобрить</button>
+            <button type="button" class="admin-btn admin-btn--bad" @click="startReject(app)">Отклонить</button>
           </div>
         </div>
+
+        <form
+          v-if="rejectingEmail === app.userEmail"
+          class="admin-reject-form"
+          @submit.prevent="submitReject(app)"
+        >
+          <label class="admin-k" :for="`reject-${app.id}`">Причина отклонения</label>
+          <textarea :id="`reject-${app.id}`" v-model="rejectComment" rows="3" class="admin-reject-input" />
+          <div class="admin-app-actions">
+            <button type="submit" class="admin-btn admin-btn--bad">Подтвердить отклонение</button>
+            <button type="button" class="admin-btn admin-btn--outline" @click="rejectingEmail = ''">Отмена</button>
+          </div>
+        </form>
 
         <div class="admin-app-grid">
           <div>
@@ -111,16 +159,12 @@ onMounted(() => {
             <p>{{ app.contact }}</p>
           </div>
           <div>
-            <span class="admin-k">Должность</span>
-            <p>{{ app.position }}</p>
-          </div>
-          <div>
             <span class="admin-k">Email</span>
-            <p>✉ {{ app.email }}</p>
+            <p>{{ app.email }}</p>
           </div>
           <div>
             <span class="admin-k">Телефон</span>
-            <p>☎ {{ app.phone }}</p>
+            <p>{{ app.phone }}</p>
           </div>
         </div>
 

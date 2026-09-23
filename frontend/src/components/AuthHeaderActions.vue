@@ -6,7 +6,7 @@ import { useSession } from '../composables/useSession'
 
 const router = useRouter()
 const { openRegister, openLogin } = useAuthModal()
-const { user, isLoggedIn, isAdmin, isManager, logout } = useSession()
+const { user, isLoggedIn, isAdmin, isManager, isCompanyCabinet, logout } = useSession()
 
 const initials = computed(() => {
   const name = String(user.value?.displayName || '').trim()
@@ -43,11 +43,11 @@ async function handleLogout() {
       Админ-панель
     </RouterLink>
     <RouterLink
-      v-if="isManager"
+      v-if="isCompanyCabinet"
       class="auth-header-btn auth-header-btn--ghost"
       :to="{ name: 'manager-discounts' }"
     >
-      Кабинет компании
+      {{ isManager ? 'Кабинет менеджера' : 'Кабинет компании' }}
     </RouterLink>
     <span class="auth-header-user" :title="user.email">
       <span class="auth-header-avatar" aria-hidden="true">{{ initials }}</span>

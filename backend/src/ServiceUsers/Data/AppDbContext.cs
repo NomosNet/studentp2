@@ -18,6 +18,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<AdCategory> AdCategories => Set<AdCategory>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
+    public DbSet<ManagerAssignment> ManagerAssignments => Set<ManagerAssignment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +96,22 @@ public sealed class AppDbContext : DbContext
             entity.HasOne(x => x.Ad)
                 .WithMany(x => x.Favorites)
                 .HasForeignKey(x => x.AdId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ManagerAssignment>(entity =>
+        {
+            entity.ToTable("manager_assignments");
+            entity.HasIndex(x => new { x.ManagerEmail, x.PartnerId }).IsUnique();
+            entity.Property(x => x.ManagerEmail).IsRequired();
+            entity.HasOne(x => x.Manager)
+                .WithMany(x => x.Assignments)
+                .HasForeignKey(x => x.ManagerEmail)
+                .HasPrincipalKey(x => x.Email)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Partner)
+                .WithMany(x => x.Managers)
+                .HasForeignKey(x => x.PartnerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

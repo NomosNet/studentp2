@@ -10,7 +10,7 @@ export const HARDCODE_DEV_AUTH_ROLE = ''
 
 const PROFILES = {
   admin: { email: 'admin@test.dev', displayName: 'Администратор', role: 'admin' },
-  manager: { email: 'manager@test.dev', displayName: 'Компания Manager', role: 'manager' },
+  manager: { email: 'manager@test.dev', displayName: 'Менеджер', role: 'manager' },
   user: { email: 'student@test.dev', displayName: 'Студент', role: 'user' },
 }
 
