@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useManagerDiscounts } from '../../composables/useManagerDiscounts'
 
-const { items: managerDiscounts, deleteDiscount, load } = useManagerDiscounts()
+const { items: managerDiscounts, deleteDiscount, load, isManager, selectedPartnerId } = useManagerDiscounts()
 
 onMounted(() => {
   void load()
@@ -30,6 +30,7 @@ async function handleDelete(id) {
     </header>
 
     <section class="mgr-discount-grid">
+      <p v-if="isManager && !selectedPartnerId" class="admin-empty">Нет закреплённых компаний. Попросите администратора назначить компанию.</p>
       <article v-for="card in managerDiscounts" :key="card.id" class="mgr-discount-card">
         <div class="mgr-discount-card__top">
           <span class="mgr-discount-emoji" aria-hidden="true">{{ card.emoji }}</span>

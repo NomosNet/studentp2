@@ -5,7 +5,7 @@ import { useManagerDiscounts } from '../../composables/useManagerDiscounts'
 
 const route = useRoute()
 const router = useRouter()
-const { getById, createDiscount, updateDiscount, categoryNames, load } = useManagerDiscounts()
+const { getById, createDiscount, updateDiscount, categoryNames, load, isManager, selectedPartnerId } = useManagerDiscounts()
 
 const discountId = computed(() => String(route.params.id || ''))
 const editingDiscount = computed(() => (discountId.value ? getById(discountId.value) : null))
@@ -40,6 +40,7 @@ onMounted(async () => {
 })
 
 async function submitForm() {
+  if (isManager.value && !selectedPartnerId.value) return
   const payload = {
     title: title.value,
     description: description.value,
@@ -75,7 +76,8 @@ async function submitForm() {
     </header>
 
     <div class="mgr-form-card">
-      <form class="mgr-form" @submit.prevent="submitForm">
+      <p v-if="isManager && !selectedPartnerId" class="admin-empty">Выберите закреплённую компанию, чтобы создать скидку.</p>
+      <form v-else class="mgr-form" @submit.prevent="submitForm">
         <div class="mgr-form__row">
           <label class="mgr-form-label" for="offer-title">📄 Название предложения</label>
           <input

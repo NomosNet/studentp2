@@ -38,6 +38,81 @@ public sealed class AdminController : ControllerBase
         return Ok(new MessageResponse { Message = "Заявка обработана" });
     }
 
+    [HttpPost("partner-requests/{userEmail}/reject")]
+    public async Task<ActionResult<MessageResponse>> Reject(
+        string userEmail,
+        [FromBody] RejectPartnerRequest data,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        await _admin.RejectPartnerRequestAsync(userEmail, data.Comment, cancellationToken);
+        return Ok(new MessageResponse { Message = "Заявка отклонена" });
+    }
+
+    [HttpGet("summary")]
+    public async Task<ActionResult<AdminSummaryResponse>> Summary(CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        return Ok(await _admin.GetSummaryAsync(cancellationToken));
+    }
+
+    [HttpGet("companies")]
+    public async Task<ActionResult<List<AdminCompanyResponse>>> Companies(CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        return Ok(await _admin.GetCompaniesAsync(cancellationToken));
+    }
+
+    [HttpPost("managers")]
+    public async Task<ActionResult<AdminUserResponse>> CreateManager(
+        [FromBody] AdminManagerCreate data,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        return Ok(await _admin.CreateManagerAsync(data, cancellationToken));
+    }
+
+    [HttpPut("managers/{userId:int}")]
+    public async Task<ActionResult<AdminUserResponse>> UpdateManager(
+        int userId,
+        [FromBody] AdminManagerUpdate data,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        return Ok(await _admin.UpdateManagerAsync(userId, data, cancellationToken));
+    }
+
+    [HttpPost("managers/{userId:int}/partners/{partnerId:int}")]
+    public async Task<ActionResult<MessageResponse>> AssignPartner(
+        int userId,
+        int partnerId,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        await _admin.AssignPartnerAsync(userId, partnerId, cancellationToken);
+        return Ok(new MessageResponse { Message = "Компания закреплена" });
+    }
+
+    [HttpDelete("managers/{userId:int}/partners/{partnerId:int}")]
+    public async Task<ActionResult<MessageResponse>> UnassignPartner(
+        int userId,
+        int partnerId,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        await _admin.UnassignPartnerAsync(userId, partnerId, cancellationToken);
+        return Ok(new MessageResponse { Message = "Компания снята" });
+    }
+
+    [HttpPost("partners")]
+    public async Task<ActionResult<AdminCompanyResponse>> CreatePartner(
+        [FromBody] AdminPartnerCreate data,
+        CancellationToken cancellationToken)
+    {
+        await _currentUser.RequireAdminAsync(cancellationToken);
+        return Ok(await _admin.CreatePartnerAsync(data, cancellationToken));
+    }
+
     [HttpGet("users")]
     public async Task<ActionResult<AdminUserListResponse>> GetUsers(
         [FromQuery] UserRole? role,

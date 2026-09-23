@@ -1,5 +1,25 @@
 <script setup>
-import { managerStatsSummary, managerStatsTable } from '../../data/managerMock'
+import { computed, onMounted } from 'vue'
+import { useManagerDiscounts } from '../../composables/useManagerDiscounts'
+import { downloadCsv } from '../../utils/csv'
+
+const { items, totalClicks, load, isManager, selectedPartnerId } = useManagerDiscounts()
+
+const summary = computed(() => [
+  { label: 'Скидок', value: String(items.value.length), tone: 'purple' },
+  { label: 'Кликов', value: totalClicks.value.toLocaleString('ru-RU'), tone: 'blue' },
+])
+
+onMounted(() => {
+  void load()
+})
+
+function downloadReport() {
+  downloadCsv('manager-statistics.csv', [
+    ['Предложение', 'Клики'],
+    ...items.value.map((row) => [row.title, row.clicks]),
+  ])
+}
 </script>
 
 <template>
@@ -9,60 +29,46 @@ import { managerStatsSummary, managerStatsTable } from '../../data/managerMock'
         <span class="admin-page-icon admin-page-icon--green" aria-hidden="true" />
         <div>
           <h1>Статистика</h1>
-          <p>Аналитика эффективности ваших предложений</p>
+          <p>Клики по скидкам выбранной компании</p>
         </div>
       </div>
-      <button type="button" class="admin-btn admin-btn--primary">⬇ Скачать отчет</button>
+      <button type="button" class="admin-btn admin-btn--primary" @click="downloadReport">Скачать отчёт</button>
     </header>
 
-    <section class="mgr-stat-summary">
-      <article
-        v-for="s in managerStatsSummary"
-        :key="s.label"
-        class="mgr-stat-summary__card"
-        :class="`tone-${s.tone}`"
-      >
-        <span class="mgr-stat-summary__ic" :class="`ic-${s.icon}`" aria-hidden="true" />
-        <div>
-          <strong>{{ s.value }}</strong>
-          <span>{{ s.label }}</span>
+    <p v-if="isManager && !selectedPartnerId" class="admin-empty">Нет закреплённых компаний.</p>
+
+    <template v-else>
+      <section class="mgr-stat-summary">
+        <article v-for="s in summary" :key="s.label" class="mgr-stat-summary__card" :class="`tone-${s.tone}`">
+          <div>
+            <strong>{{ s.value }}</strong>
+            <span>{{ s.label }}</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="admin-panel">
+        <h2>Скидки</h2>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Предложение</th>
+                <th>Клики</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="!items.length">
+                <td colspan="2">Скидок пока нет</td>
+              </tr>
+              <tr v-for="row in items" :key="row.id">
+                <td>{{ row.title }}</td>
+                <td>{{ row.clicks.toLocaleString('ru-RU') }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </article>
-    </section>
-
-    <section class="admin-panel">
-      <h2>Статистика по скидкам</h2>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Предложение</th>
-              <th>Просмотры</th>
-              <th>Клики</th>
-              <th>CTR</th>
-              <th>Период</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in managerStatsTable" :key="row.offer">
-              <td>{{ row.offer }}</td>
-              <td>{{ row.views }}</td>
-              <td>{{ row.clicks }}</td>
-              <td class="admin-ctr">{{ row.ctr }}</td>
-              <td>{{ row.period }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="admin-panel mgr-export">
-      <h2>Экспорт отчетов</h2>
-      <div class="mgr-export-btns">
-        <button type="button" class="mgr-export-btn">📊 Excel отчет</button>
-        <button type="button" class="mgr-export-btn">📕 PDF отчет</button>
-        <button type="button" class="mgr-export-btn">📄 CSV данные</button>
-      </div>
-    </section>
+      </section>
+    </template>
   </div>
 </template>

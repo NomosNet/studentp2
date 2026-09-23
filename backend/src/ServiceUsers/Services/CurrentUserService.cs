@@ -67,4 +67,35 @@ public sealed class CurrentUserService
 
         return await partners.RequireApprovedPartnerAsync(user.Email, cancellationToken);
     }
+
+    public async Task<User> RequireManagerAsync(CancellationToken cancellationToken)
+    {
+        var user = await GetRequiredUserAsync(cancellationToken);
+        if (user.Role != UserRole.Manager)
+        {
+            throw new HttpDetailException(403, "Доступ только для менеджеров");
+        }
+
+        return user;
+    }
+
+    public async Task<Partner> RequireAssignedPartnerAsync(int partnerId, CancellationToken cancellationToken)
+    {
+        var user = await RequireManagerAsync(cancellationToken);
+        var partner = await _db.Partners.FirstOrDefaultAsync(x => x.Id == partnerId && x.IsApproved, cancellationToken);
+        if (partner is null)
+        {
+            throw new HttpDetailException(404, "Компания не найдена");
+        }
+
+        var assigned = await _db.ManagerAssignments.AnyAsync(
+            x => x.ManagerEmail == user.Email && x.PartnerId == partnerId,
+            cancellationToken);
+        if (!assigned)
+        {
+            throw new HttpDetailException(403, "Компания не закреплена за вами");
+        }
+
+        return partner;
+    }
 }
