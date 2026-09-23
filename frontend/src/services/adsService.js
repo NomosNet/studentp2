@@ -37,3 +37,29 @@ export function updatePartnerAd(adId, payload) {
 export function deletePartnerAd(adId) {
   return apiRequest(`/api/v1/partner/ads/${adId}`, { method: 'DELETE' })
 }
+
+export function getManagerCompanies() {
+  return apiRequest('/api/v1/manager/companies')
+}
+
+export function getManagerAds(partnerId, params = {}) {
+  return apiRequest(`/api/v1/manager/companies/${partnerId}/ads`, { query: params })
+}
+
+export function createManagerAd(partnerId, payload) {
+  return apiRequest(`/api/v1/manager/companies/${partnerId}/ads`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateManagerAd(partnerId, adId, payload) {
+  return apiRequest(`/api/v1/manager/companies/${partnerId}/ads/${adId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteManagerAd(partnerId, adId) {
+  return apiRequest(`/api/v1/manager/companies/${partnerId}/ads/${adId}`, { method: 'DELETE' })
+}

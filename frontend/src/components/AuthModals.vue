@@ -216,10 +216,10 @@ onUnmounted(() => {
                 <span class="auth-input-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4V6zm0 0l8 6 8-6" stroke="currentColor" stroke-width="2"/></svg>
                 </span>
-                <input id="login-email" v-model="loginEmail" type="text" class="auth-input" placeholder="admin, manager или email" autocomplete="username" />
+                <input id="login-email" v-model="loginEmail" type="text" class="auth-input" placeholder="admin или email" autocomplete="username" />
               </div>
               <p class="auth-hint">
-                Демо-вход: <strong>admin / admin</strong> — админ-панель, <strong>manager / manager</strong> — кабинет компании.
+                Демо-вход: <strong>admin / admin</strong> открывает админ-панель. Менеджер и партнёр входят по своему email.
               </p>
             </div>
 

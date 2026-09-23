@@ -40,12 +40,7 @@ async function readStorage() {
 function mapLoginValue(value) {
   const v = String(value || '').trim().toLowerCase()
   if (v === 'admin') return 'admin@studentpass.local'
-  if (v === 'manager' || v === 'partner') return 'partner@studentpass.local'
   return String(value || '').trim()
-}
-
-function isPartnerRole(role) {
-  return role === 'partner' || role === 'manager'
 }
 
 export function useSession() {
@@ -53,7 +48,9 @@ export function useSession() {
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
-  const isManager = computed(() => isPartnerRole(user.value?.role))
+  const isPartner = computed(() => user.value?.role === 'partner')
+  const isManager = computed(() => user.value?.role === 'manager')
+  const isCompanyCabinet = computed(() => isPartner.value || isManager.value)
 
   async function login({ email, password = '' }) {
     await loginUser({ email: mapLoginValue(email), password })
@@ -112,7 +109,9 @@ export function useSession() {
     user,
     isLoggedIn,
     isAdmin,
+    isPartner,
     isManager,
+    isCompanyCabinet,
     login,
     register,
     requestRegistrationCode,

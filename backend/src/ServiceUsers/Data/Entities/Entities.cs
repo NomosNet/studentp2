@@ -17,6 +17,7 @@ public sealed class User
 
     public Partner? Partner { get; set; }
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+    public ICollection<ManagerAssignment> Assignments { get; set; } = new List<ManagerAssignment>();
 }
 
 public sealed class EmailVerification
@@ -56,6 +57,18 @@ public sealed class Partner
 
     public User User { get; set; } = null!;
     public ICollection<Ad> Ads { get; set; } = new List<Ad>();
+    public ICollection<ManagerAssignment> Managers { get; set; } = new List<ManagerAssignment>();
+}
+
+public sealed class ManagerAssignment
+{
+    public int Id { get; set; }
+    public string ManagerEmail { get; set; } = string.Empty;
+    public int PartnerId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public User Manager { get; set; } = null!;
+    public Partner Partner { get; set; } = null!;
 }
 
 public sealed class Category

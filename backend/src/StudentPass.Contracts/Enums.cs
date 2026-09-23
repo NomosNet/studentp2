@@ -4,7 +4,8 @@ public enum UserRole
 {
     User,
     Admin,
-    Partner
+    Partner,
+    Manager
 }
 
 public enum PartnerRequestStatus
@@ -20,6 +21,7 @@ public static class UserRoleExtensions
     {
         UserRole.Admin => "admin",
         UserRole.Partner => "partner",
+        UserRole.Manager => "manager",
         _ => "user"
     };
 
@@ -27,6 +29,7 @@ public static class UserRoleExtensions
     {
         "admin" => UserRole.Admin,
         "partner" => UserRole.Partner,
+        "manager" => UserRole.Manager,
         _ => UserRole.User
     };
 }
